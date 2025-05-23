@@ -13,3 +13,4 @@ class Amenity(BaseModel, Base):
     place_amenities = relationship(
         "Place",
         secondary=association_table,)
+

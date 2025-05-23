@@ -87,3 +87,4 @@ class Place(BaseModel, Base):
             from models.amenity import Amenity
             if type(value) is Amenity:
                 self.amenity_ids.append(value.id)
+

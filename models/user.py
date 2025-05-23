@@ -15,3 +15,4 @@ class User(BaseModel, Base):
 
     places = relationship('Place', backref='user', cascade='delete')
     reviews = relationship('Review', backref='user', cascade='delete')
+

@@ -95,3 +95,4 @@ class DBStorage:
         if type(cls) is str:
             cls = eval(cls)
         return self.__session.query(cls).count()
+
