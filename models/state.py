@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" holds class State"""
+""" State Module for HBNB project for AirBNB_clone_v2"""
 
 
 from models.base_model import BaseModel, Base

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Defines the HBNB console."""
+""" Console Module """
 import cmd
 import sys
 import models
