@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # Define servers
 servers=("3.92.214.122" "3.88.21.35")
 
