@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
-# Install Nginx if not already installed
-sudo apt-get -y update
-sudo apt-get -y upgrade
-sudo apt-get -y install nginx
 
-# create folders
-sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
-#create a fake html file
-echo "This is a test" | sudo tee /data/web_static/releases/test/index.html
-# create symbolic link
-sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+# Define servers
+servers=("3.92.214.122" "3.88.21.35")
 
-# give ownership
-sudo chown -hR ubuntu:ubuntu /data/
-sudo sed -i '38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
-sudo service nginx start
+for server in "${servers[@]}"
+do
+    echo "Setting up server: $server"
+
+    ssh -o StrictHostKeyChecking=no ubuntu@"$server" << 'ENDSSH'
+        sudo apt-get -y update
+        sudo apt-get -y upgrade
+        sudo apt-get -y install nginx
+
+        sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
+        echo "This is a test" | sudo tee /data/web_static/releases/test/index.html
+
+        sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+
+        sudo chown -hR ubuntu:ubuntu /data/
+
+        sudo sed -i '/location \/ {/a \\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}' /etc/nginx/sites-available/default
+
+        sudo service nginx restart
+ENDSSH
+
+done
+
+exit 0
