@@ -1,46 +1,26 @@
 #!/usr/bin/env bash
 # Script that sets up web servers for the deployment of web_static
 
-# Install Nginx if not already installed
-apt-get update -y
-apt-get install nginx -y
+sudo apt-get update
+sudo apt-get -y install nginx
+sudo ufw allow 'Nginx HTTP'
 
-# Create directories if they don't exist
-mkdir -p /data/web_static/releases/test/
-mkdir -p /data/web_static/shared/
-
-# Create a fake HTML file for testing
-cat << EOF > /data/web_static/releases/test/index.html
-<html>
+sudo mkdir -p /data/web_static/releases/test/
+sudo mkdir -p /data/web_static/shared/
+echo "<html>
   <head>
   </head>
   <body>
     Holberton School
   </body>
-</html>
-EOF
+</html>" | sudo tee /data/web_static/releases/test/index.html
 
-# Remove existing symbolic link if it exists and create new one
-rm -f /data/web_static/current
-ln -sf /data/web_static/releases/test/ /data/web_static/current
+sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+sudo chown -R ubuntu:ubuntu /data/
 
-# Give ownership to ubuntu user and group recursively
-chown -R ubuntu:ubuntu /data/
-
-# Update Nginx configuration to add hbnb_static location
-# Use a more reliable method to add the location block
-if ! grep -q "/hbnb_static" /etc/nginx/sites-available/default; then
-    # Find the location / block and add our location before it
-    sed -i '/location \/ {/i\
-\
-	location /hbnb_static {\
-		alias /data/web_static/current/;\
-	}\
-' /etc/nginx/sites-available/default
+# Only add the location block if it doesn't already exist
+if ! grep -q "location /hbnb_static" /etc/nginx/sites-enabled/default; then
+    sudo sed -i '/listen 80 default_server/a \\tlocation /hbnb_static {\n\t\talias /data/web_static/current/;\n\t}' /etc/nginx/sites-enabled/default
 fi
 
-# Restart Nginx to apply configuration
-service nginx restart
-
-# Ensure script exits successfully
-exit 0
+sudo nginx -t && sudo systemctl restart nginx

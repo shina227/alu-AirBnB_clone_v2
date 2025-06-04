@@ -1,59 +1,30 @@
 #!/usr/bin/python3
-"""Fabric Script that distributes an archive to web servers using Fabric 3.x"""
+"""
+Fabric script based on the file 1-pack_web_static.py that distributes an
+archive to the web servers
+"""
 
-from fabric import Connection
-from invoke import UnexpectedExit
+from fabric.api import put, run, env
 from os.path import exists
+env.hosts = ['3.92.214.122', '3.88.21.35']
 
-# Define the remote hosts and user
-hosts = ['3.92.214.122', '3.88.21.35']
-user = 'ubuntu'
 
 def do_deploy(archive_path):
-    """Distributes the archive to web servers"""
-    if not exists(archive_path):
-        print(f"Archive path {archive_path} does not exist.")
+    """distributes an archive to the web servers"""
+    if exists(archive_path) is False:
         return False
-
-    file_n = archive_path.split("/")[-1]
-    no_ext = file_n.split(".")[0]
-    remote_path = "/data/web_static/releases/"
-
     try:
-        for host in hosts:
-            print(f"Connecting to {host}...")
-            c = Connection(host=host, user=user)
-
-            print(f"Uploading {file_n} to /tmp/...")
-            c.put(archive_path, f'/tmp/{file_n}')
-
-            print(f"Creating directory {remote_path}{no_ext}/...")
-            c.run(f'mkdir -p {remote_path}{no_ext}/')
-
-            print(f"Extracting archive...")
-            c.run(f'tar -xzf /tmp/{file_n} -C {remote_path}{no_ext}/')
-
-            print(f"Removing uploaded archive...")
-            c.run(f'rm /tmp/{file_n}')
-
-            print(f"Moving contents...")
-            c.run(f'mv {remote_path}{no_ext}/web_static/* {remote_path}{no_ext}/')
-
-            print(f"Cleaning up extra folder...")
-            c.run(f'rm -rf {remote_path}{no_ext}/web_static')
-
-            print(f"Updating symbolic link...")
-            c.run('rm -rf /data/web_static/current')
-            c.run(f'ln -s {remote_path}{no_ext}/ /data/web_static/current')
-
-            print(f"Deployment to {host} successful!")
-
+        file_n = archive_path.split("/")[-1]
+        no_ext = file_n.split(".")[0]
+        path = "/data/web_static/releases/"
+        put(archive_path, '/tmp/')
+        run('mkdir -p {}{}/'.format(path, no_ext))
+        run('tar -xzf /tmp/{} -C {}{}/'.format(file_n, path, no_ext))
+        run('rm /tmp/{}'.format(file_n))
+        run('mv {0}{1}/web_static/* {0}{1}/'.format(path, no_ext))
+        run('rm -rf {}{}/web_static'.format(path, no_ext))
+        run('rm -rf /data/web_static/current')
+        run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
         return True
-
-    except UnexpectedExit as e:
-        print(f"Command failed: {e.result.stderr}")
-        return False
-
-    except Exception as e:
-        print(f"Deployment error: {e}")
+    except:
         return False
